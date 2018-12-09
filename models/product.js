@@ -18,20 +18,31 @@ const getProductFromFile = (callBack) => {
 }
 
 module.exports = class Product {
-    constructor (title, imageUrl, description, price) {
+    constructor (id, title, imageUrl, description, price) {
+        this.id = id;
         this.title = title;
         this.imageUrl = imageUrl;
         this.description = description;
         this.price = price;
     }
 
-    save() {
-        this.id = Math.random().toString();
+    save() {       
         getProductFromFile(products => {
-            products.push(this);
-            fs.writeFile(p, JSON.stringify(products), (err) => {  // stringify takes JS obj and converts it to Json
-                console.log(err);
-            });
+            if(this.id) {
+                const exitingProductIndex = products.findIndex(prod => prod.id === this.id);
+                const updatedProducts = [...products];
+                updatedProducts[exitingProductIndex] = this;
+                fs.writeFile(p, JSON.stringify(updatedProducts), (err) => {  // stringify takes JS obj and converts it to Json
+                    console.log(err);
+                });
+            }
+            else {
+                this.id = Math.random().toString();
+                products.push(this);
+                fs.writeFile(p, JSON.stringify(products), (err) => {  // stringify takes JS obj and converts it to Json
+                    console.log(err);
+                });
+            }          
         });    
     }
 
