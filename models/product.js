@@ -47,18 +47,18 @@ module.exports = class Product {
         });    
     }
 
-static deleteById(prodId) {   
-    getProductFromFile(products => {
-        const product = products.find(prod => prod.id === prodId);
-        const updatedProducts = products.filter(prod => prod.id !== prodId);
-        fs.writeFile(p, JSON.stringify(updatedProducts), (err) => {  
-            // Also remove the product from the cart 
-            if(!err) {
-                Cart.deleteProduct(prodId, product.price);
-            }
+    static deleteById(prodId) {   
+        getProductFromFile(products => {
+            const product = products.find(prod => prod.id === prodId);
+            const updatedProducts = products.filter(prod => prod.id !== prodId);
+            fs.writeFile(p, JSON.stringify(updatedProducts), (err) => {  
+                // Also remove the product from the cart 
+                if(!err) {
+                    Cart.deleteProduct(prodId, product.price);
+                }
+            });
         });
-    });
-}
+    }
 
     static fetchAll(callBack) {
         getProductFromFile(callBack);
