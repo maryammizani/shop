@@ -14,12 +14,25 @@ exports.postAddProduct = (req, res, next) => {
     const imageUrl = req.body.imageUrl;  // same as the input name in html
     const price = req.body.price; 
     const description = req.body.description; 
-    const product = new Product(null, title, imageUrl, description, price);
-    product.save()
-    .then(() => {
-        res.redirect('/');
+    Product.create({
+        title: title,
+        price: price,
+        imageUrl: imageUrl,
+        description: description
     })
-    .catch(err => {console.log(err)});   
+    .then(result => {
+        console.log('Created Product');
+    })
+    .catch(err => {
+        console.log(err);
+    });
+
+    // const product = new Product(null, title, imageUrl, description, price);
+    // product.save()
+    // .then(() => {
+    //     res.redirect('/');
+    // })
+    // .catch(err => {console.log(err)});   
 };
 
 exports.getEditProduct = (req, res, next) => {
@@ -61,13 +74,15 @@ exports.postDeleteProduct = (req, res, next) => {
 
 exports.getProducts = (req, res, next) => 
 {
-    Product.fetchAll()
-    .then(([rows, filedData]) => {
+    Product.findAll()
+    .then(products => {
         res.render('admin/products', {
-        prods: rows, 
-        pageTitle: 'Admin Products', 
-        path:'/admin/products'
-      });
-    })
-    .catch(err => console.log(err));
+            prods: products, 
+            pageTitle: 'Admin Products', 
+            path:'/admin/products'
+          });
+        })
+    .catch(err => {
+        console.log(err);
+    });
 };
