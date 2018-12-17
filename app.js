@@ -5,6 +5,8 @@ const bodyParser = require('body-parser');
 //const expressHbs = require('express-handlebars');
 const errorController = require('./controllers/error');
 const sequelize = require('./util/database');
+const Product = require('./models/product');
+const User = require('./models/user')
 
 const app = express();
 
@@ -25,14 +27,42 @@ const shopRoutes = require('./routes/shop');
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.use((req, res, next) => {
+    User.findByPk(1)
+    .then(user => {
+        // user is a seqelize obj, not a js obj with key//values
+        // we can execute methods like destroy on it 
+        req.user = user;  
+        next();
+    })
+    .catch(err => console.log(err));
+})
+
 app.use('/admin', adminRoutes);
 app.use(shopRoutes);
 
 app.use(errorController.get404);
 
+Product.belongsTo(User, {constraints: true, onDelete: 'CASCADE'});
+User.hasMany(Product);  // Optional
+
+//sequelize.sync({ force: true })
 sequelize.sync()
 .then(result => {
-    //console.log(result);
+    return User.findByPk(1); 
+})
+.then(user => {
+    if(!user) {
+        return User.create({
+            name: 'Maryam',
+            email: 'test@test.com'
+        });
+    }
+    //return Promise.resolve(user);
+    return user;
+})
+.then(user => {
+    //console.log(user);
     app.listen(3000);
 })
 .catch(err => {
