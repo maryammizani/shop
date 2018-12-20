@@ -45,10 +45,15 @@ app.use(shopRoutes);
 
 app.use(errorController.get404);
 
+// Product/User Relations
 Product.belongsTo(User, {constraints: true, onDelete: 'CASCADE'});
 User.hasMany(Product);  // Optional
+
+// Cart/User Relations
 User.hasOne(Cart);
 Cart.belongsTo(User);  // Optional
+
+// Cart/Product Relations
 Cart.belongsToMany(Product, {through: CartItem});
 Product.belongsToMany(Cart, {through: CartItem});
 
@@ -68,10 +73,14 @@ sequelize.sync()
     return user;
 })
 .then(user => {
-    //console.log(user);
-    return user.createCart();
-    
-})
+    user.getCart().then(cart => {
+        if(!cart)
+        {
+            user.createCart();
+        }
+        return user.getCart();  
+    })   
+}) 
 .then(cart => {
     app.listen(3000);
 })
