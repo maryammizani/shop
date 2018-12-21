@@ -155,8 +155,10 @@ exports.postCartDeleteProduct = (req, res, next) => {
 }; 
 
 exports.postOrder = (req, res, next) => {
+    let fetchedCart;
     req.user.getCart()
     .then(cart => {
+        fetchedCart = cart;
         return cart.getProducts();
     })
     .then(products => {
@@ -170,16 +172,28 @@ exports.postOrder = (req, res, next) => {
         .catch(err => console.log(err));
     })
     .then(result => {
+        return fetchedCart.setProducts(null);     // Resets the cart
+    })
+    .then(result => {
         res.redirect('/orders')
     })
     .catch(err => console.log(err));
 }
 
 exports.getOrders = (req, res, next) => {   
-    res.render('shop/orders', {
-        pageTitle: 'Your Orders', 
-        path:'/orders'
-        });
+    // Eager loading: When fetching all the orders
+    // also fetch related products
+    // The array of orders will include products per order
+    // This works because we have this: Order.belongsToMany(Product, {through: OrderItem});
+    req.user.getOrders({include: ['products']}) 
+    .then(orders => {
+        res.render('shop/orders', {
+            pageTitle: 'Your Orders', 
+            path:'/orders',
+            orders: orders
+            });
+    })
+    .catch(err => console.log(err));  
 };
 
 exports.getCheckout = (req, res, next) => {
