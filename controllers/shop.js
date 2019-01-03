@@ -62,17 +62,13 @@ exports.getIndex = (req, res, next) => {
 };
 
 exports.getCart = (req, res, next) => {   
-    req.user.getCart()   // Magic func because of: User.hasOne(Cart);
-    .then(cart => {
-        //console.log(cart);
-        return cart.getProducts()  // Magic func because of: Cart.belongsToMany(Product, {through: CartItem}); 
-        .then(products => {
+    req.user.getCart()  
+    .then(products => {
             res.render('shop/cart', {
                 pageTitle: 'Your Cart', 
                 path:'/cart',
                 products: products
             });
-        }).catch(err => console.log(err));
     })
     .catch(err => console.log(err));
 };
@@ -84,6 +80,7 @@ exports.postCart = (req, res, next) => {
         return req.user.addToCart(product);
     }).then(result => {
         console.log(result);
+        res.redirect('/cart');
     })
     .catch(err => {
         console.log(err);
