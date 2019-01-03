@@ -104,7 +104,7 @@ class User {
     getOrders() {
         const db = getDb();
         return db.collection('orders')
-        .find({'user._id': new ObjectId(this._id)})
+        .find({'user._id': new ObjectId(this._id)}) // nested path
         .toArray();
     }
 
