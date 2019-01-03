@@ -85,58 +85,15 @@ exports.postCart = (req, res, next) => {
     .catch(err => {
         console.log(err);
     });
-    // let fetchedCart;
-    // let newQuantity = 1;
-    // req.user.getCart()
-    // .then(cart => {
-    //     fetchedCart = cart;
-    //     return cart.getProducts({where: { id: prodId }})
-    // })
-    // .then(products => {
-    //     let product;
-    //     if(products.length > 0)
-    //     {
-    //         product = products[0];
-    //     }
-    //     // This product obj is the one retreived from the in-between table (cartItem)
-    //     // hence has access to other fields of the cartItem table       
-    //     if(product) {
-    //         const oldQuantity = product.cartItem.quantity;
-    //         newQuantity = oldQuantity + 1;
-    //         return product;
-    //     }
-    //     return Product.findByPk(prodId)
-    // })
-    // .then(product => {
-    //     return fetchedCart.addProduct(product, {
-    //         through: {quantity: newQuantity}
-    //     });
-    // })
-    // .then(() => {
-    //     res.redirect('/cart');
-    // })
-    // .catch(err => console.log(err));
 };
 
 exports.postCartDeleteProduct = (req, res, next) => {  
     const prodId = req.body.productId;
-    req.user.getCart()
-    .then(cart => {
-        return cart.getProducts({ where: {id: prodId}});
-    })
-    .then(products => {
-        const product = products[0];
-        return product.cartItem.destroy();
-    })
+    req.user.deleteItemFromCart(prodId)
     .then(result => {
         res.redirect('/cart');
     })
     .catch(err => console.log(err));
-
-    // Product.findById(prodId, product => {
-    //     Cart.deleteProduct(prodId, product.price);
-    //     res.redirect('/cart');
-    // });
 }; 
 
 exports.postOrder = (req, res, next) => {

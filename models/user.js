@@ -45,12 +45,14 @@ class User {
 
     getCart() {
         const db = getDb(); 
+        // Create an array of product Ids belonging to this cart
         const productIds = this.cart.items.map(i => {
             return i.productId;
         });
         return db.collection('products')
         .find({_id: {$in: productIds}})  //$in operation takes an array of ids and returns all elements that have that id
         .toArray()
+        // Add quantity to each product
         .then(products => {
             return products.map(p => {
                 return {...p, quantity: this.cart.items
@@ -60,9 +62,19 @@ class User {
                 }
             })
         });
-            
     }
 
+    deleteItemFromCart(productId){
+        const updatedCartItems =this.cart.items.filter(item => {
+            return item.productId.toString() !== productId.toString();
+        });
+
+        const db = getDb(); 
+        return db.collection('users').updateOne(
+         {_id: new ObjectId(this._id)},
+         {$set: {cart: {items: updatedCartItems}}}
+         );   
+    }
 
     static findById(userId) {
         const db = getDb();
