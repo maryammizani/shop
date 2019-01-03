@@ -14,15 +14,6 @@ exports.getProducts = (req, res, next) => {
     .catch(err => {
         console.log(err);
     });
-    // Product.fetchAll()
-    // .then(([rows, fieldData]) => {
-    //     res.render('shop/product-list', {
-    //         prods: rows, 
-    //         pageTitle: 'All Products', 
-    //         path:'/products'
-    //       });
-    // })
-    // .catch(err => console.log(err));
 };
 
 exports.getProduct = (req, res, next) => {
@@ -50,15 +41,6 @@ exports.getIndex = (req, res, next) => {
     .catch(err => {
         console.log(err);
     });
-    // Product.fetchAll()
-    // .then(([rows, fieldData]) => {
-    //     res.render('shop/index', {
-    //         prods: rows, 
-    //         pageTitle: 'Shop', 
-    //         path:'/'
-    //       });
-    // })
-    // .catch(err => console.log(err));
 };
 
 exports.getCart = (req, res, next) => {   
@@ -98,24 +80,7 @@ exports.postCartDeleteProduct = (req, res, next) => {
 
 exports.postOrder = (req, res, next) => {
     let fetchedCart;
-    req.user.getCart()
-    .then(cart => {
-        fetchedCart = cart;
-        return cart.getProducts();
-    })
-    .then(products => {
-        return req.user.createOrder()
-        .then(order => {
-            return order.addProducts(products.map(product => {
-                product.orderItem = { quantity : product.cartItem.quantity}
-                return product;
-            }))
-        })
-        .catch(err => console.log(err));
-    })
-    .then(result => {
-        return fetchedCart.setProducts(null);     // Resets the cart
-    })
+    req.user.addOrder()
     .then(result => {
         res.redirect('/orders')
     })
@@ -123,11 +88,7 @@ exports.postOrder = (req, res, next) => {
 }
 
 exports.getOrders = (req, res, next) => {   
-    // Eager loading: When fetching all the orders
-    // also fetch related products
-    // The array of orders will include products per order
-    // This works because we have this: Order.belongsToMany(Product, {through: OrderItem});
-    req.user.getOrders({include: ['products']}) 
+    req.user.getOrders() 
     .then(orders => {
         res.render('shop/orders', {
             pageTitle: 'Your Orders', 
