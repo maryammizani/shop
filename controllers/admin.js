@@ -1,9 +1,6 @@
-//const mongodb = require('mongodb');
 const Product = require('../models/product');
-//const ObjectId = mongodb.ObjectId;
 
 exports.getAddProduct = (req, res, next) => {
-    //res.sendFile(path.join(rootDir, 'views', 'add-product.html'));
     res.render('admin/edit-product', {
       pageTitle: 'Add Product',
       path: '/admin/add-product',
@@ -60,20 +57,24 @@ exports.postEditProduct = (req, res, next) => {
     const updatedImageUrl = req.body.imageUrl;  // same as the input name in html
     const updatedPrice = req.body.price; 
     const updatedDescription = req.body.description; 
-        const product = new Product(updatedTitle, updatedPrice, updatedDescription, updatedImageUrl, prodId);
-    product.save()
+    Product.findById(prodId)
+    .then(product => {
+        product.title= updatedTitle;
+        product.price = updatedPrice;
+        product.description = updatedDescription;
+        product.imageUrl = updatedImageUrl;
+        return product.save()
+    })  
     .then(result => {
         console.log('UPDATED PRODUCT');
         res.redirect('/admin/products');
     })
     .catch(err => console.log(err));
-    
 }
 
 exports.postDeleteProduct = (req, res, next) => {
     const prodId = req.body.productId;
-    //Product.destroy({where:{id: prodId}});
-    Product.deleteById(prodId)
+    Product.findByIdAndRemove(prodId)
     .then(() => {
         console.log('DESTROYED PRODUCT');
         res.redirect('/admin/products');
@@ -83,7 +84,7 @@ exports.postDeleteProduct = (req, res, next) => {
 
 exports.getProducts = (req, res, next) => 
 {
-    Product.fetchAll()
+    Product.find()
     .then(products => {
         res.render('admin/products', {
             prods: products, 
