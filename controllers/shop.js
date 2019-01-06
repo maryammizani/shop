@@ -1,4 +1,5 @@
 const Product = require('../models/product');
+const Order = require('../models/order');
 
 exports.getProducts = (req, res, next) => {
     Product.find()
@@ -43,8 +44,8 @@ exports.getIndex = (req, res, next) => {
 
 exports.getCart = (req, res, next) => {   
     req.user
-    .populate('cart.items.productId')  
-    .execPopulate()
+    .populate('cart.items.productId')    // doesn't return a promise
+    .execPopulate()  // returns a promise
     .then(user => {
         
         const products = user.cart.items;
@@ -75,7 +76,7 @@ exports.postCart = (req, res, next) => {
 
 exports.postCartDeleteProduct = (req, res, next) => {  
     const prodId = req.body.productId;
-    req.user.deleteItemFromCart(prodId)
+    req.user.removeFromCart(prodId)
     .then(result => {
         res.redirect('/cart');
     })
@@ -83,17 +84,42 @@ exports.postCartDeleteProduct = (req, res, next) => {
 }; 
 
 exports.postOrder = (req, res, next) => {
-    let fetchedCart;
-    req.user.addOrder()
+    req.user
+    .populate('cart.items.productId')    // doesn't return a promise
+    .execPopulate()  // returns a promise
+    .then(user => {
+        console.log(user.cart.items);
+        const products = user.cart.items.map(i => {
+            return {
+                quantity: i.quantity,
+                productData: {...i.productId._doc}
+            }
+        });
+        const order = new Order({
+            user: {
+                name: req.user.name,
+                userId: req.user
+            },
+            products: products
+        });
+        return order.save();
+    })
     .then(result => {
+        return req.user.clearCart();        
+    })
+    .then(() => {
         res.redirect('/orders')
     })
     .catch(err => console.log(err));
 }
 
 exports.getOrders = (req, res, next) => {   
-    req.user.getOrders() 
+    req.user
+    .populate({order})
+    .execPopulate()
+    //req.user.getOrders() 
     .then(orders => {
+        console.log(orders);
         res.render('shop/orders', {
             pageTitle: 'Your Orders', 
             path:'/orders',

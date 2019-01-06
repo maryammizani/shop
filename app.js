@@ -19,7 +19,7 @@ app.use(bodyParser.urlencoded({extended: false}));
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use((req, res, next) => {
-    User.findById("5c313cfd8979ec5d022debda") 
+    User.findById("5c32796d0b4fad083f12447b") 
     .then(user => {
         req.user = user;  
         next();
@@ -42,7 +42,7 @@ mongoose.connect('mongodb+srv://user1:node@cluster0-nuomh.mongodb.net/shop?retry
                 cart: {
                     items: []
                 }
-            });
+           });
             user.save();
         }
     })      
