@@ -35,15 +35,6 @@ app.use(session({
     })
 );
 
-app.use((req, res, next) => {
-    User.findById("5c32a2842e05343453bef6aa") 
-    .then(user => {
-        req.user = user;  
-        next();
-    })
-    .catch(err => console.log(err));
-});
-
 app.use('/admin', adminRoutes);
 app.use(shopRoutes);
 app.use(authRoutes);
