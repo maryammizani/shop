@@ -35,6 +35,19 @@ app.use(session({
     })
 );
 
+// Fetch the user that its id was saved in our session during login and add it to the req
+app.use((req, res, next) => {
+    if(!req.session.user){
+        return next();
+    }
+    User.findById(req.session.user._id) 
+    .then(user => {
+        req.user = user;  
+        next();
+    })
+    .catch(err => console.log(err)); 
+})
+
 app.use('/admin', adminRoutes);
 app.use(shopRoutes);
 app.use(authRoutes);
