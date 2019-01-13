@@ -55,19 +55,7 @@ app.use(authRoutes);
 app.use(errorController.get404);
 
 mongoose.connect(MONGODB_URI + '?retryWrites=true', { useNewUrlParser: true } )
-.then(result => {
-    User.findOne().then(user => {
-        if(!user) {
-            const user = new User({
-                name: 'Maryam',
-                email: 'Maryam@test.com',
-                cart: {
-                    items: []
-                }
-           });
-            user.save();
-        }
-    })      
+.then(result => {   
     app.listen(3000);
 })
 .catch(err => {
