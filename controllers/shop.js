@@ -36,9 +36,9 @@ exports.getIndex = (req, res, next) => {
         res.render('shop/index', {
             prods: products, 
             pageTitle: 'Shop', 
-            path:'/',
-            isAuthenticated: req.session.isLoggedIn,
-            csrfToken: req.csrfToken()
+            path:'/'
+            // isAuthenticated: req.session.isLoggedIn,
+            // csrfToken: req.csrfToken()
           });
         })
     .catch(err => {
@@ -93,7 +93,6 @@ exports.postOrder = (req, res, next) => {
     .populate('cart.items.productId')    // doesn't return a promise
     .execPopulate()  // returns a promise
     .then(user => {
-        console.log(user.cart.items);
         const products = user.cart.items.map(i => {
             return {
                 quantity: i.quantity,
@@ -102,7 +101,7 @@ exports.postOrder = (req, res, next) => {
         });
         const order = new Order({
             user: {
-                name:  req.user.name,
+                email:  req.user.email,
                 userId: req.user
             },
             products: products
