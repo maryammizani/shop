@@ -6,6 +6,7 @@ const mongoose = require('mongoose');
 const session = require('express-session');
 const MongoDBStore = require('connect-mongodb-session')(session);
 const csrf = require('csurf');
+const flash = require('connect-flash');
 
 const errorController = require('./controllers/error');
 const User = require('./models/user');
@@ -19,7 +20,7 @@ const store = new MongoDBStore({
     //expires:   // cleanedup automatically by MongoDB
 });
 
-const scrfProtection = csrf()  // You can send in a secret string to be used for hashing
+const csrfProtection = csrf()  // You can send in a secret string to be used for hashing
 // You can also store in the cookies or sessions (default is sessions) 
 
 app.set('view engine', 'ejs');
@@ -38,7 +39,8 @@ app.use(session({
         store: store
     })
 );
-app.use(scrfProtection);
+app.use(csrfProtection);
+app.use(flash());
 
 // Fetch the user that its id was saved in our session during login and add it to the req
 app.use((req, res, next) => {
