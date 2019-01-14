@@ -5,6 +5,7 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const session = require('express-session');
 const MongoDBStore = require('connect-mongodb-session')(session);
+const csrf = require('csurf');
 
 const errorController = require('./controllers/error');
 const User = require('./models/user');
@@ -17,6 +18,9 @@ const store = new MongoDBStore({
     collection: 'sessions'
     //expires:   // cleanedup automatically by MongoDB
 });
+
+const scrfProtection = csrf()  // You can send in a secret string to be used for hashing
+// You can also store in the cookies or sessions (default is sessions) 
 
 app.set('view engine', 'ejs');
 app.set('views', 'views');
@@ -34,6 +38,7 @@ app.use(session({
         store: store
     })
 );
+app.use(scrfProtection);
 
 // Fetch the user that its id was saved in our session during login and add it to the req
 app.use((req, res, next) => {
