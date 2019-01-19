@@ -14,6 +14,8 @@ const User = require('./models/user');
 const MONGODB_URI = 'mongodb+srv://user1:node@cluster0-nuomh.mongodb.net/shop';
 
 const app = express();
+
+// Create a collection in DB that keeps the sessions
 const store = new MongoDBStore({
     uri: MONGODB_URI,
     collection: 'sessions'
@@ -32,6 +34,16 @@ const authRoutes = require('./routes/auth');
 
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(express.static(path.join(__dirname, 'public')));
+
+// The session middleware:
+// 1. Reads and parses the cookie out of the request
+// 2. When a controller sets req.session.user=? and req.session.save() =>
+//    The session middleware will encrypt that session info and saves it in the DB
+//    It also sends the encrypted user info in the response back to the client 
+//    to be saved in their browser as a cookie
+//    After that, everytime client sends a req, the cookie will be embedded in the req
+//    Server parses and decrypts that cookie to see if it matches any session id in the session collection
+//    if so req.session will be valid, otherwise it will be null
 app.use(session({
         secret:'my secret', 
         resave: false, 
@@ -55,6 +67,7 @@ app.use((req, res, next) => {
     .catch(err => console.log(err)); 
 })
 
+// Add CSRF Token after extracting the user, but before passing the requests to the routes:
 app.use((req, res, next) => {
     res.locals.isAuthenticated = req.session.isLoggedIn;
     res.locals.csrfToken = req.csrfToken();
