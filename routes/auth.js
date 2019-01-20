@@ -9,7 +9,25 @@ router.get('/login', authController.getLogin);
 
 router.get('/signup', authController.getSignup);
 
-router.post('/login', authController.postLogin);
+router.post('/login',
+[
+body('email')
+    .isEmail()
+    .withMessage('Please enter a valid email'),
+body('password', 'Password is not valid')
+    .isLength({min: 5})
+    .isAlphanumeric()//,
+// body('email')
+// .custom((value, {req}) => {
+//     return User.findOne({email: value})
+//     .then(user => {
+//         if(!user) {
+//             return Promise.reject('E-Mail does not exist.');
+//         }
+//     })
+// })
+],
+authController.postLogin);
 
 router.post('/signup', 
 [
