@@ -5,6 +5,8 @@ const sendgridTransport = require('nodemailer-sendgrid-transport');
 const sendGridKey = require('../key').SENDGRID_KEY;
 const URL = require('../key').URL;
 
+const { validationResult} = require('express-validator/check');
+
 const User = require('../models/user');
 
 const transport = nodemailer.createTransport(sendgridTransport({
@@ -78,7 +80,15 @@ exports.postSignup = (req, res, next) => {
     const email= req.body.email;
     const password = req.body.password;
     const confirmPassword = req.body.confirmPassword;
-
+    const errors = validationResult(req);
+    if(!errors.isEmpty()) {
+        console.log(errors.array());
+        return res.status(422).render('auth/signup', {
+            path: '/signup',
+            pageTitle: 'Signup',
+            errorMessage: errors.array()[0].msg
+        });;
+    }
     // Check to see if this user already exists
     User.findOne({email: email})
     .then(userDoc => {

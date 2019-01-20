@@ -61,6 +61,7 @@ exports.postEditProduct = (req, res, next) => {
     const updatedDescription = req.body.description; 
     Product.findById(prodId)
     .then(product => {
+        // Note: toString is required to change the Mongoose ObjectId to string 
         if(product.userId.toString() !== req.user._id.toString())
         {
             return res.redirect('/');
