@@ -10,56 +10,61 @@ router.get('/login', authController.getLogin);
 router.get('/signup', authController.getSignup);
 
 router.post('/login',
-[
-body('email')
-    .isEmail()
-    .withMessage('Please enter a valid email'),
-body('password', 'Password is not valid')
-    .isLength({min: 5})
-    .isAlphanumeric()//,
-// body('email')
-// .custom((value, {req}) => {
-//     return User.findOne({email: value})
-//     .then(user => {
-//         if(!user) {
-//             return Promise.reject('E-Mail does not exist.');
-//         }
-//     })
-// })
-],
+    [
+    body('email')
+        .isEmail()
+        .withMessage('Please enter a valid email')
+        .normalizeEmail(),
+    body('password', 'Password is not valid')
+        .isLength({min: 5})
+        .isAlphanumeric()
+        .trim(),
+    // body('email')
+    // .custom((value, {req}) => {
+    //     return User.findOne({email: value})
+    //     .then(user => {
+    //         if(!user) {
+    //             return Promise.reject('E-Mail does not exist.');
+    //         }
+    //     })
+    // })
+    ],
 authController.postLogin);
 
 router.post('/signup', 
-[
-check('email')
-.isEmail()
-.withMessage('Please enter a valid email')
-.custom((value, {req}) => {
-    // if(value === 'test@test.com') {
-    //     throw new Error('This email address is forbidden');
-    // }
-    // return true;
-    return User.findOne({email: value})
-    .then(userDoc => {
-        if(userDoc) {
-            return Promise.reject('E-Mail exists already. Please pick a different one.');
+    [
+    check('email')
+    .isEmail()
+    .withMessage('Please enter a valid email')
+    .normalizeEmail()
+    .custom((value, {req}) => {
+        // if(value === 'test@test.com') {
+        //     throw new Error('This email address is forbidden');
+        // }
+        // return true;
+        return User.findOne({email: value})
+        .then(userDoc => {
+            if(userDoc) {
+                return Promise.reject('E-Mail exists already. Please pick a different one.');
+            }
+        });
+    }),
+    body(
+        'password', 
+        'Please enter a password with  only numbers and text and at least 5 characters'
+        )
+        .isLength({min: 5})
+        .isAlphanumeric()
+        .trim(),
+    body('confirmPassword')
+    .trim()
+    .custom((value, {req}) => {
+        if(value !==req.body.password) {
+            throw new Error('Passwords have to match.')
         }
-    });
-}),
-body(
-    'password', 
-    'Please enter a password with  only numbers and text and at least 5 characters'
-    )
-    .isLength({min: 5})
-    .isAlphanumeric(),
-body('confirmPassword')
-.custom((value, {req}) => {
-    if(value !==req.body.password) {
-        throw new Error('Passwords have to match.')
-    }
-    return true;
-})
-],
+        return true;
+    })
+    ],
 authController.postSignup);
 
 router.post('/logout', authController.postLogout);
