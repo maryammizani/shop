@@ -86,7 +86,7 @@ exports.postLogin = (req, res, next) => {
                     email: email,
                     password: password
                 },
-                validationErrors: [{param: 'email'}] // []
+                validationErrors: [{param: 'email'}] // or []
             });
         }
         bcrypt.compare(password, user.password)
@@ -109,7 +109,7 @@ exports.postLogin = (req, res, next) => {
                     email: email,
                     password: password
                 },
-                validationErrors: [{param: 'password'}] // []
+                validationErrors: [{param: 'password'}] // or []
             });
         })
         .catch(err => {
