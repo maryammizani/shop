@@ -86,6 +86,27 @@ exports.postEditProduct = (req, res, next) => {
     const updatedImageUrl = req.body.imageUrl;  // same as the input name in html
     const updatedPrice = req.body.price; 
     const updatedDescription = req.body.description; 
+
+    // Validate the inputs
+    const errors = validationResult(req);
+    if(!errors.isEmpty()) {
+        return res.status(422).render('admin/edit-product', {
+            pageTitle: 'Edit Product',
+            path: '/admin/edit-product',
+            editing: true,
+            hasError: true,
+            product: {
+                title: updatedTitle,
+                imageUrl: updatedImageUrl,
+                price: updatedPrice,
+                description: updatedDescription,
+                _id: prodId
+            },
+            errorMessage: errors.array()[0].msg,
+            validationErrors: errors.array()
+        });
+    }
+
     Product.findById(prodId)
     .then(product => {
         // Note: toString is required to change the Mongoose ObjectId to string 
