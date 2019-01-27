@@ -61,10 +61,15 @@ app.use((req, res, next) => {
     }
     User.findById(req.session.user._id) 
     .then(user => {
+        if(!user) {
+            return next();
+        }
         req.user = user;  
         next();
     })
-    .catch(err => console.log(err)); 
+    .catch(err => {
+        throw new Error(err);
+    }); 
 })
 
 // Add CSRF Token after extracting the user, but before passing the requests to the routes:
@@ -78,6 +83,8 @@ app.use('/admin', adminRoutes);
 app.use(shopRoutes);
 app.use(authRoutes);
 
+// Handle Errors
+app.get('/500', errorController.get500);
 app.use(errorController.get404);
 
 mongoose.connect(MONGODB_URI + '?retryWrites=true', { useNewUrlParser: true } )
