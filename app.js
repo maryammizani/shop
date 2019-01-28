@@ -54,13 +54,22 @@ app.use(session({
 app.use(csrfProtection);
 app.use(flash());
 
+// Add CSRF Token 
+app.use((req, res, next) => {
+    res.locals.isAuthenticated = req.session.isLoggedIn;
+    res.locals.csrfToken = req.csrfToken();
+    next();
+});
+
 // Fetch the user that its id was saved in our session during login and add it to the req
 app.use((req, res, next) => {
+    //throw new Error('Sync Error');
     if(!req.session.user){
         return next();
     }
     User.findById(req.session.user._id) 
     .then(user => {
+        //throw new Error('Async Error');
         if(!user) {
             return next();
         }
@@ -68,16 +77,10 @@ app.use((req, res, next) => {
         next();
     })
     .catch(err => {
-        throw new Error(err);
+        //throw new Error(err);
+        next(new Error(err));
     }); 
 })
-
-// Add CSRF Token after extracting the user, but before passing the requests to the routes:
-app.use((req, res, next) => {
-    res.locals.isAuthenticated = req.session.isLoggedIn;
-    res.locals.csrfToken = req.csrfToken();
-    next();
-});
 
 app.use('/admin', adminRoutes);
 app.use(shopRoutes);
@@ -88,8 +91,13 @@ app.get('/500', errorController.get500);
 app.use(errorController.get404);
 
 app.use((error, req, res, next) => {
-    // res.status(error.httpStatusCode).render(...);
-    res.redirect('/500');
+    // redirecting can casue an infinite loop if the error happenes during user auth 
+    // render the error page instead of redirecting: res.redirect('/500');   
+    res.status(500).render('500', {
+        pageTitle: 'Error',
+        path: '/500',
+        isAuthenticated: req.session.isLoggedIn
+    });
 });
 
 mongoose.connect(MONGODB_URI + '?retryWrites=true', { useNewUrlParser: true } )
