@@ -7,6 +7,7 @@ const session = require('express-session');
 const MongoDBStore = require('connect-mongodb-session')(session);
 const csrf = require('csurf');
 const flash = require('connect-flash');
+const multer = require('multer');
 
 const errorController = require('./controllers/error');
 const User = require('./models/user');
@@ -22,8 +23,16 @@ const store = new MongoDBStore({
     //expires:   // cleanedup automatically by MongoDB
 });
 
-const csrfProtection = csrf()  // You can send in a secret string to be used for hashing
+const csrfProtection = csrf();  // You can send in a secret string to be used for hashing
 // You can also store in the cookies or sessions (default is sessions) 
+const fileStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+      cb(null, './images');
+    },
+    filename: (req, file, cb) => {
+      cb(null, new Date().toISOString().replace(new RegExp(':', 'g'), '-') + '-' + file.originalname);
+    }
+  });
 
 app.set('view engine', 'ejs');
 app.set('views', 'views');
@@ -33,6 +42,8 @@ const shopRoutes = require('./routes/shop');
 const authRoutes = require('./routes/auth');
 
 app.use(bodyParser.urlencoded({extended: false}));
+//app.use(multer({dest: 'images'}).single('image'));
+app.use(multer({ storage: fileStorage }).single('image'));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // The session middleware:
@@ -91,8 +102,8 @@ app.get('/500', errorController.get500);
 app.use(errorController.get404);
 
 app.use((error, req, res, next) => {
-    // redirecting can casue an infinite loop if the error happenes during user auth 
-    // render the error page instead of redirecting: res.redirect('/500');   
+    //redirecting can casue an infinite loop if the error happenes during user auth 
+    //render the error page instead of redirecting: res.redirect('/500');   
     res.status(500).render('500', {
         pageTitle: 'Error',
         path: '/500',
