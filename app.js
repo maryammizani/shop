@@ -25,14 +25,28 @@ const store = new MongoDBStore({
 
 const csrfProtection = csrf();  // You can send in a secret string to be used for hashing
 // You can also store in the cookies or sessions (default is sessions) 
-const fileStorage = multer.diskStorage({
+const fileStorage = multer.diskStorage({ 
     destination: (req, file, cb) => {
-      cb(null, './images');
+      cb(null, 'images');  // The ./images dir should already exist, otherwise you get an error 
     },
     filename: (req, file, cb) => {
-      cb(null, new Date().toISOString().replace(new RegExp(':', 'g'), '-') + '-' + file.originalname);
+        cb(null, new Date().getTime() + '-' + file.originalname);//.toISOString().replace(new RegExp(':.', 'g'), '-') 
     }
-  });
+});
+
+const fileFilter = (req, file, cb) => {
+    console.log(file.mimetype);
+    if(
+        file.mimetype === 'image/png' || 
+        file.mimetype === 'image/jpg' || 
+        file.mimetype === 'image/jpeg'
+        ) {
+        cb(null, true); // true means accept the file
+    }
+    else {
+        cb(null, false);
+    }
+};
 
 app.set('view engine', 'ejs');
 app.set('views', 'views');
@@ -43,7 +57,7 @@ const authRoutes = require('./routes/auth');
 
 app.use(bodyParser.urlencoded({extended: false}));
 //app.use(multer({dest: 'images'}).single('image'));
-app.use(multer({ storage: fileStorage }).single('image'));
+app.use(multer({ storage: fileStorage, fileFilter: fileFilter }).single('image'));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // The session middleware:
@@ -102,6 +116,7 @@ app.get('/500', errorController.get500);
 app.use(errorController.get404);
 
 app.use((error, req, res, next) => {
+    console.log(error);
     //redirecting can casue an infinite loop if the error happenes during user auth 
     //render the error page instead of redirecting: res.redirect('/500');   
     res.status(500).render('500', {
