@@ -58,7 +58,14 @@ const authRoutes = require('./routes/auth');
 app.use(bodyParser.urlencoded({extended: false}));
 //app.use(multer({dest: 'images'}).single('image'));
 app.use(multer({ storage: fileStorage, fileFilter: fileFilter }).single('image'));
+
+// express.static is a middleware that statically serves the requested files from the predefined paths
+// Express assumes that the files are served as if they were in the root folder,
 app.use(express.static(path.join(__dirname, 'public')));
+
+// The first param 'images' adjusts the root folder: if we have a req that starts with /images, then serve the files in that predefined path
+// Ex: Req URL = http://localhost:3000/images/t.jpg
+app.use('/images', express.static(path.join(__dirname, 'images')));
 
 // The session middleware:
 // 1. Reads and parses the cookie out of the request
