@@ -1,5 +1,7 @@
 const fs = require('fs');
 const path = require('path');
+const PDFDocument = require('pdfkit'); // used to create pdf files (invoice)
+
 const Product = require('../models/product');
 const Order = require('../models/order');
 
@@ -176,6 +178,23 @@ exports.getInvoice = (req, res, next) => {
         const invoiceName = 'invoice-' + orderId + '.pdf';
         const invoicePath = path.join('data', 'invoices', invoiceName);
 
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader(
+            'Content-Disposition', 
+            'inline; filename="' + invoiceName + '"');
+
+        // Create the PDF file on the fly
+        const pdfDoc = new PDFDocument(); //pdfDoc is a readable stream
+        // pipe pdfDoc into a writable file stream (also creates the pdf on the server)       
+        pdfDoc.pipe(fs.createWriteStream(invoicePath));     
+        pdfDoc.pipe(res);
+
+        // Now whatever we add to the doc will be forwarded into the output stream
+        // which gets generated on the fly and into the response.
+        pdfDoc.text('hello world'); //Allows adding a simple text to the pdf doc
+        pdfDoc.end();
+
+        // Preload Data into memory (use only for small files)
         // fs.readFile(invoicePath, (err, data) => {
         //     if(err) {
         //         return next(err);
@@ -186,16 +205,9 @@ exports.getInvoice = (req, res, next) => {
         //     res.send(data);
         // })
 
-        const file = fs.createReadStream(invoicePath);  // allows reading the file chunk by chunk
-        res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader(
-            'Content-Disposition', 
-            'inline; filename="' + invoiceName + '"');
-
-        // pipe forwards the data into the res
-        // Res will be streamed to the browser chunk by chunk 
-        // (The most data preloaded into memory will be the size of one chunk)
-        file.pipe(res);       
+        // Stream data instead of preloading it
+        //const file = fs.createReadStream(invoicePath);  // allows reading the file chunk by chunk
+        //file.pipe(res); 
     })
     .catch(err => next(err));
 }
