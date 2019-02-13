@@ -188,10 +188,20 @@ exports.getInvoice = (req, res, next) => {
         // pipe pdfDoc into a writable file stream (also creates the pdf on the server)       
         pdfDoc.pipe(fs.createWriteStream(invoicePath));     
         pdfDoc.pipe(res);
-
-        // Now whatever we add to the doc will be forwarded into the output stream
-        // which gets generated on the fly and into the response.
-        pdfDoc.text('hello world'); //Allows adding a simple text to the pdf doc
+        pdfDoc.fontSize(26).text('Invoice', {
+            underline: true
+        }); 
+        pdfDoc.text('------------------------------\n');
+        let totalPrice = 0;
+        order.products.forEach(prod => {
+            totalPrice += prod.quantity * prod.product.price;
+            pdfDoc.fontSize(14).text(
+                prod.product.title + ' - ' + 
+                prod.quantity + ' x ' + '$' +
+                prod.price);
+        });  
+        pdfDoc.text('------------------------------');
+        pdfDoc.fontSize(20).text('Total Price: $' + totalPrice);
         pdfDoc.end();
 
         // Preload Data into memory (use only for small files)
