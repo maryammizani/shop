@@ -198,7 +198,7 @@ exports.getInvoice = (req, res, next) => {
             pdfDoc.fontSize(14).text(
                 prod.product.title + ' - ' + 
                 prod.quantity + ' x ' + '$' +
-                prod.price);
+                prod.product.price);
         });  
         pdfDoc.text('------------------------------');
         pdfDoc.fontSize(20).text('Total Price: $' + totalPrice);
