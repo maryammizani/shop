@@ -94,16 +94,13 @@ exports.getCart = (req, res, next) => {
      req.user
     .populate('cart.items.productId')    // doesn't return a promise
     .execPopulate()  // returns a promise
-    .then(user => {
-        
+    .then(user => {      
         const products = user.cart.items;
-        console.log(products);
-
-            res.render('shop/cart', {
-                pageTitle: 'Your Cart', 
-                path:'/cart',
-                products: products,
-            });
+        res.render('shop/cart', {
+            pageTitle: 'Your Cart', 
+            path:'/cart',
+            products: products,
+        });
     })
     .catch(err => {
         const error = new Error(err);
@@ -140,6 +137,31 @@ exports.postCartDeleteProduct = (req, res, next) => {
         return next(Error);
     });
 }; 
+
+exports.getCheckout = (req, res, next) => { 
+    req.user
+    .populate('cart.items.productId')    // doesn't return a promise
+    .execPopulate()  // returns a promise
+    .then(user => {      
+        const products = user.cart.items;
+        let total = 0;
+        products.forEach(p => {
+            total += p.quantity * p.productId.price;
+        });
+        console.log(products);
+            res.render('shop/checkout', {
+            pageTitle: 'Checkout', 
+            path:'/checkout',
+            products: products,
+            totalSum: total
+        });
+    })
+    .catch(err => {
+        const error = new Error(err);
+        error.httpStatusCode = 500;
+        return next(Error);
+    });
+}
 
 exports.postOrder = (req, res, next) => {
      req.user
@@ -189,13 +211,6 @@ exports.getOrders = (req, res, next) => {
         error.httpStatusCode = 500;
         return next(Error);
     });  
-};
-
-exports.getCheckout = (req, res, next) => {
-        res.render('shop/checkout', {
-            pageTitle: 'Checkout', 
-            path:'/checkout',
-          });
 };
 
 exports.getInvoice = (req, res, next) => {
