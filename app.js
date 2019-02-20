@@ -10,9 +10,14 @@ const flash = require('connect-flash');
 const multer = require('multer');
 
 const errorController = require('./controllers/error');
-const User = require('./models/user');
 
-const MONGODB_URI = 'mongodb+srv://user1:node@cluster0-nuomh.mongodb.net/shop';
+const shopController = require('./controllers/shop');
+const isAuth = require('./middleware/is-auth');
+
+const User = require('./models/user');
+const key = require('./key');
+
+const MONGODB_URI = key.MONGODB_URI;
 
 const app = express();
 
@@ -83,13 +88,12 @@ app.use(session({
         store: store
     })
 );
-app.use(csrfProtection);
+
 app.use(flash());
 
-// Add CSRF Token 
 app.use((req, res, next) => {
     res.locals.isAuthenticated = req.session.isLoggedIn;
-    res.locals.csrfToken = req.csrfToken();
+    //res.locals.csrfToken = req.csrfToken();
     next();
 });
 
@@ -114,6 +118,18 @@ app.use((req, res, next) => {
     }); 
 })
 
+app.post('/create-order', isAuth, shopController.postOrder);
+
+// Check if the received CSRF token matches what is expected
+// The CSRF middleware checks both the req body and the header for the _csrf field
+app.use(csrfProtection);
+
+// Add the CSRF Token to the response
+app.use((req, res, next) => {
+    res.locals.csrfToken = req.csrfToken();
+    next();
+});
+
 app.use('/admin', adminRoutes);
 app.use(shopRoutes);
 app.use(authRoutes);
@@ -121,6 +137,8 @@ app.use(authRoutes);
 // Handle Errors
 app.get('/500', errorController.get500);
 app.use(errorController.get404);
+
+
 
 app.use((error, req, res, next) => {
     console.log(error);

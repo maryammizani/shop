@@ -1,7 +1,11 @@
 const fs = require('fs');
 const path = require('path');
 const PDFDocument = require('pdfkit'); // used to create pdf files (invoice)
+const key = require('../key');
 
+// Stripe: Set your secret key: remember to change this to your live secret key in production
+// Stripe: See your keys here: https://dashboard.stripe.com/account/apikeys
+const stripe = require("stripe")(key.STRIPE_SECRET_KEY);  // This is the secret Key, not the publishable key
 const Product = require('../models/product');
 const Order = require('../models/order');
 
@@ -153,6 +157,7 @@ exports.getCheckout = (req, res, next) => {
             pageTitle: 'Checkout', 
             path:'/checkout',
             products: products,
+            stripe_public_key: key.STRIPE_PUBLIC_KEY,
             totalSum: total
         });
     })
@@ -164,10 +169,18 @@ exports.getCheckout = (req, res, next) => {
 }
 
 exports.postOrder = (req, res, next) => {
-     req.user
+    // Token is created using Checkout or Elements!
+    // Get the payment token ID submitted by the form:
+    const token = req.body.stripeToken; // Using Express
+    let totalSum = 0;
+
+    req.user
     .populate('cart.items.productId')    // doesn't return a promise
     .execPopulate()  // returns a promise
-    .then(user => {
+    .then(user => {       
+        user.cart.items.forEach(p => {
+            totalSum += p.quantity * p.productId.price;
+        });        
         const products = user.cart.items.map(i => {
             return {
                 quantity: i.quantity,
@@ -184,6 +197,13 @@ exports.postOrder = (req, res, next) => {
         return order.save();
     })
     .then(result => {
+        const charge = stripe.charges.create({ // This will send a req to stripe servers and charge our payment method
+            amount: totalSum * 100,
+            currency: 'cad',
+            description: 'Order', 
+            source: token,
+            metadata: {order_id: result._id.toString()} // save the created order ID in stipe
+        });
         return  req.user.clearCart();        
     })
     .then(() => {

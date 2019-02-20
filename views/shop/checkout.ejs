@@ -16,4 +16,18 @@
                 <h2>Total: <%= totalSum %></h2>
             </div>
         </main>
+        <div class="centered">
+            <form action="/create-order" method="POST">
+                <script
+                  src="https://checkout.stripe.com/checkout.js" class="stripe-button"
+                  data-key= "<%=stripe_public_key %>"
+                  data-amount="<%= totalSum * 100%>"
+                  data-name="Your order"
+                  data-description="All the items you ordered"
+                  data-image="https://stripe.com/img/documentation/checkout/marketplace.png"
+                  data-locale="auto"
+                  data-currency="cad">
+                </script>
+              </form>
+        </div>
         <%- include('../includes/end.ejs') %>
